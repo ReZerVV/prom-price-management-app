@@ -1,0 +1,1 @@
+ALTER TABLE `price_markup_changes` ADD `old_price` real;

@@ -1,0 +1,9 @@
+{
+  "$schema": "https://ui.shadcn.com/schema.json",
+  "components": "src/renderer/components",
+  "aliases": {
+    "components": "src/renderer/components",
+    "utils": "src/renderer/lib/utils"
+  }
+}
+
