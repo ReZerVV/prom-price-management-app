@@ -6,9 +6,13 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+} from "@/shared/ui/components/ui/card"
+import { Button } from "@/shared/ui/components/ui/button"
+import {
+  Alert,
+  AlertDescription,
+  AlertTitle,
+} from "@/shared/ui/components/ui/alert"
 import { toast } from "sonner"
 import {
   getPromApiKey,
@@ -21,20 +25,24 @@ import {
   InputGroupButton,
   InputGroupInput,
   InputGroupText,
-} from "@/components/ui/input-group"
-import { Spinner } from "@/components/ui/spinner"
-import { usePasteFromClipboard } from "@/hooks/use-paste-from-clipboard"
-import { StepList, StepListItem } from "@/pages/settings-page/StepList"
+} from "@/shared/ui/components/ui/input-group"
+import { Spinner } from "@/shared/ui/components/ui/spinner"
+import { usePasteFromClipboard } from "@/shared/ui/hooks/use-paste-from-clipboard"
+import {
+  StepList,
+  StepListItem,
+} from "@/pages/settings-page/StepList"
 import { SquareChevronRight } from "lucide-react"
-import { Separator } from "@/components/ui/separator"
+import { Separator } from "@/shared/ui/components/ui/separator"
 
 const PromApiKeySettingForm: FC = () => {
   const [promApiKey, setPromApiKey] = useState<string>("")
   const [isLoading, setIsLoading] = useState(false)
-  const [isValid, setIsValid] = useState<boolean | null>(null)
-  const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(
+  const [isValid, setIsValid] = useState<boolean | null>(
     null,
   )
+  const [debounceTimer, setDebounceTimer] =
+    useState<NodeJS.Timeout | null>(null)
   const { getFromClipboard } = usePasteFromClipboard()
 
   useEffect(() => {
@@ -93,10 +101,13 @@ const PromApiKeySettingForm: FC = () => {
     <>
       <Card className={"shadow-none"}>
         <CardHeader>
-          <CardTitle className={"font-normal"}>Prom API Key</CardTitle>
+          <CardTitle className={"font-normal"}>
+            Prom API Key
+          </CardTitle>
           <CardDescription className={"text-xs"}>
-            Введіть ваш Prom API Key для інтеграції з сервісом Prom. Це
-            дозволить додатку отримувати дані з вашого облікового запису Prom.
+            Введіть ваш Prom API Key для інтеграції з
+            сервісом Prom. Це дозволить додатку отримувати
+            дані з вашого облікового запису Prom.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -112,12 +123,16 @@ const PromApiKeySettingForm: FC = () => {
             </InputGroupAddon>
             <InputGroupInput
               placeholder="Введіть API токен..."
-              onChange={(e) => setPromApiKey(e.target.value)}
+              onChange={(e) =>
+                setPromApiKey(e.target.value)
+              }
               value={promApiKey}
             />
             {isLoading && (
               <InputGroupAddon align="inline-end">
-                <InputGroupText className={"text-xs font-normal "}>
+                <InputGroupText
+                  className={"text-xs font-normal "}
+                >
                   Завантаження...
                 </InputGroupText>
                 <Spinner />
@@ -141,9 +156,11 @@ const PromApiKeySettingForm: FC = () => {
                       Ключ дійсний
                     </AlertTitle>
                     <AlertDescription className="text-xs text-[#87b37a]">
-                      Ключ API дійсний і працює коректно. Ви успішно підключили
-                      інтеграцію з Prom, і тепер додаток може отримувати та
-                      оновлювати дані з вашого облікового запису.
+                      Ключ API дійсний і працює коректно. Ви
+                      успішно підключили інтеграцію з Prom,
+                      і тепер додаток може отримувати та
+                      оновлювати дані з вашого облікового
+                      запису.
                     </AlertDescription>
                   </Alert>
                 </motion.div>
@@ -160,9 +177,10 @@ const PromApiKeySettingForm: FC = () => {
                       Ключ не дійсний
                     </AlertTitle>
                     <AlertDescription className="text-xs text-[#c95d63]">
-                      Не правильний ключ API або відсутній доступ до ресурсів.
-                      Будь ласка, перевірте правильність введеного ключа та
-                      права доступу, надані цьому ключу.
+                      Не правильний ключ API або відсутній
+                      доступ до ресурсів. Будь ласка,
+                      перевірте правильність введеного ключа
+                      та права доступу, надані цьому ключу.
                     </AlertDescription>
                   </Alert>
                 </motion.div>
@@ -177,34 +195,42 @@ const PromApiKeySettingForm: FC = () => {
               Як отримати API ключ?
             </CardTitle>
             <CardDescription className={"text-xs"}>
-              Покрокова інструкція для отримання API ключа з необхідними правами
-              доступу
+              Покрокова інструкція для отримання API ключа з
+              необхідними правами доступу
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <StepList className={"flex flex-col gap-2 text-xs"}>
+            <StepList
+              className={"flex flex-col gap-2 text-xs"}
+            >
               <StepListItem number={1}>
                 <h3 className={"text-sm"}>
                   Увійдіть в особистий кабінет Prom.ua
                 </h3>
                 <p className={"text-muted-foreground"}>
-                  Перейдіть на сайт my.prom.ua та авторизуйтесь
+                  Перейдіть на сайт my.prom.ua та
+                  авторизуйтесь
                 </p>
               </StepListItem>
               <StepListItem number={2}>
                 <h3 className={"text-sm"}>
-                  Перейдіть в розділ "Управління API токенами"
+                  Перейдіть в розділ "Управління API
+                  токенами"
                 </h3>
                 <p className={"text-muted-foreground"}>
-                  Знайдіть розділ API в меню налаштувань аккаунта
+                  Знайдіть розділ API в меню налаштувань
+                  аккаунта
                 </p>
               </StepListItem>
               <StepListItem number={3}>
-                <h3 className={"text-sm"}>Створіть новий API ключ</h3>
+                <h3 className={"text-sm"}>
+                  Створіть новий API ключ
+                </h3>
                 <p className={"text-muted-foreground"}>
-                  Натисніть "Створити ключ" та вкажіть назву для ідентифікації.
-                  Надайте необхідні права доступу для группи "Продукти та
-                  группи": "Читання та запис"
+                  Натисніть "Створити ключ" та вкажіть назву
+                  для ідентифікації. Надайте необхідні права
+                  доступу для группи "Продукти та группи":
+                  "Читання та запис"
                 </p>
               </StepListItem>
             </StepList>
@@ -215,8 +241,8 @@ const PromApiKeySettingForm: FC = () => {
                 Важливо!
               </AlertTitle>
               <AlertDescription className="text-xs text-[#ff9a01]">
-                Переконайтеся, що ви надали необхідні права доступу для
-                повноцінної роботи.
+                Переконайтеся, що ви надали необхідні права
+                доступу для повноцінної роботи.
               </AlertDescription>
             </Alert>
           </CardFooter>

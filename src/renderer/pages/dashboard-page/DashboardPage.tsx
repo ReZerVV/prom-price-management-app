@@ -5,13 +5,13 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/shared/ui/components/ui/card"
 import {
   ChangesGroup,
   PriceMarkupChangesLog,
 } from "../../../types"
 import { getLogs } from "@/pages/dashboard-page/DashboardPage.funcs"
-import { Spinner } from "@/components/ui/spinner"
+import { Spinner } from "@/shared/ui/components/ui/spinner"
 import { AutomationItem } from "@/pages/automations-page/AutomationItem"
 import {
   Empty,
@@ -20,11 +20,11 @@ import {
   EmptyHeader,
   EmptyMedia,
   EmptyTitle,
-} from "@/components/ui/empty"
+} from "@/shared/ui/components/ui/empty"
 import { Zap } from "lucide-react"
 import { Link } from "react-router-dom"
 import { ChangeLogItem } from "@/pages/dashboard-page/ChangeLogItem"
-import { Separator } from "@/components/ui/separator"
+import { Separator } from "@/shared/ui/components/ui/separator"
 
 const DashboardPage: FC = () => {
   const [logs, setLogs] = useState<

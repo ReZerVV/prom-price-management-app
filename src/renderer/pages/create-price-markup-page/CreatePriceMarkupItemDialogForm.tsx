@@ -13,42 +13,42 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
+} from "@/shared/ui/components/ui/dialog"
+import { Button } from "@/shared/ui/components/ui/button"
 import {
   Command,
   CommandEmpty,
   CommandInput,
   CommandItem,
   CommandList,
-} from "@/components/ui/command"
+} from "@/shared/ui/components/ui/command"
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
-} from "@/components/ui/popover"
+} from "@/shared/ui/components/ui/popover"
 import {
   Field,
   FieldDescription,
   FieldError,
   FieldLabel,
-} from "@/components/ui/field"
+} from "@/shared/ui/components/ui/field"
 import { ChevronsUpDown, Search } from "lucide-react"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Separator } from "@/components/ui/separator"
+import { ScrollArea } from "@/shared/ui/components/ui/scroll-area"
+import { Separator } from "@/shared/ui/components/ui/separator"
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupInput,
-} from "@/components/ui/input-group"
-import { Spinner } from "@/components/ui/spinner"
+} from "@/shared/ui/components/ui/input-group"
+import { Spinner } from "@/shared/ui/components/ui/spinner"
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
+} from "@/shared/ui/components/ui/select"
 
 interface CreatePriceMarkupItemDialogFormProps {
   onAdd: (item: unknown) => void

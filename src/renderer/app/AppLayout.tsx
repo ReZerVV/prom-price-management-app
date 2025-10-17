@@ -1,8 +1,11 @@
 import { AppSidebar } from "@/widgets/app-sidebar/AppSidebar"
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import {
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/shared/ui/components/ui/sidebar"
 import React from "react"
 import { Outlet } from "react-router-dom"
-import { Toaster } from "@/components/ui/sonner"
+import { Toaster } from "@/shared/ui/components/ui/sonner"
 
 export default function AppLayout({}) {
   return (

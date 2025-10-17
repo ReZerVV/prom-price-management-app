@@ -10,18 +10,18 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/shared/ui/components/ui/card"
 import { AutomationItem } from "@/pages/automations-page/AutomationItem"
-import { Spinner } from "@/components/ui/spinner"
+import { Spinner } from "@/shared/ui/components/ui/spinner"
 import {
   Empty,
   EmptyContent,
   EmptyDescription,
   EmptyHeader,
   EmptyTitle,
-} from "@/components/ui/empty"
+} from "@/shared/ui/components/ui/empty"
 import { Link } from "react-router-dom"
-import { Separator } from "@/components/ui/separator"
+import { Separator } from "@/shared/ui/components/ui/separator"
 
 const AutomationsPage: FC = () => {
   const [automations, setAutomations] = useState<

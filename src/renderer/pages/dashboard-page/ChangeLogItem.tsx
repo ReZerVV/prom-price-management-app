@@ -5,9 +5,9 @@ import {
   ItemDescription,
   ItemMedia,
   ItemTitle,
-} from "@/components/ui/item"
+} from "@/shared/ui/components/ui/item"
 import { Hand, Zap } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/ui/lib/utils"
 
 export interface ChangeLogItemProps {
   catalogUrls: string[]

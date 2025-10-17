@@ -1,7 +1,10 @@
 import { ComponentProps, FC } from "react"
-import { cn } from "@/lib/utils"
+import { cn } from "@/shared/ui/lib/utils"
 
-const StepList: FC<ComponentProps<"ul">> = ({ children, ...props }) => {
+const StepList: FC<ComponentProps<"ul">> = ({
+  children,
+  ...props
+}) => {
   return <ul {...props}>{children}</ul>
 }
 

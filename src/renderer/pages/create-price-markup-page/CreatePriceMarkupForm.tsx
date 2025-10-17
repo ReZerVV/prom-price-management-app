@@ -6,7 +6,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card"
+} from "@/shared/ui/components/ui/card"
 import {
   Form,
   FormControl,
@@ -15,17 +15,17 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
+} from "@/shared/ui/components/ui/form"
 import { useFieldArray, useForm } from "react-hook-form"
 import { z } from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { Button } from "@/components/ui/button"
+import { Button } from "@/shared/ui/components/ui/button"
 import {
   InputGroup,
   InputGroupAddon,
   InputGroupButton,
   InputGroupInput,
-} from "@/components/ui/input-group"
+} from "@/shared/ui/components/ui/input-group"
 import { CircleCheck, Delete, Percent } from "lucide-react"
 import {
   loadCatalogs,
@@ -33,17 +33,17 @@ import {
   searchCategories,
   searchOffers,
 } from "@/pages/create-price-markup-page/CreatePriceMarkupForm.funcs"
-import { Spinner } from "@/components/ui/spinner"
+import { Spinner } from "@/shared/ui/components/ui/spinner"
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@/components/ui/tabs"
+} from "@/shared/ui/components/ui/tabs"
 import {
   ButtonGroup,
   ButtonGroupText,
-} from "@/components/ui/button-group"
+} from "@/shared/ui/components/ui/button-group"
 import {
   Table,
   TableBody,
@@ -52,12 +52,12 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table"
+} from "@/shared/ui/components/ui/table"
 import {
   Field,
   FieldDescription,
   FieldLabel,
-} from "@/components/ui/field"
+} from "@/shared/ui/components/ui/field"
 import {
   CatalogCategory,
   CatalogOffer,
@@ -69,9 +69,9 @@ import {
   ItemContent,
   ItemDescription,
   ItemTitle,
-} from "@/components/ui/item"
+} from "@/shared/ui/components/ui/item"
 import { CreatePriceMarkupItemDialogForm } from "@/pages/create-price-markup-page/CreatePriceMarkupItemDialogForm"
-import { Separator } from "@/components/ui/separator"
+import { Separator } from "@/shared/ui/components/ui/separator"
 import {
   Select,
   SelectContent,
@@ -79,8 +79,8 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
+} from "@/shared/ui/components/ui/select"
+import { Input } from "@/shared/ui/components/ui/input"
 
 const priceMarkupFormSchema = z
   .object({

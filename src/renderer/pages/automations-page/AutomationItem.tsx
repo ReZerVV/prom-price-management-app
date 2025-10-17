@@ -5,8 +5,8 @@ import {
   ItemContent,
   ItemDescription,
   ItemTitle,
-} from "@/components/ui/item"
-import { Button } from "@/components/ui/button"
+} from "@/shared/ui/components/ui/item"
+import { Button } from "@/shared/ui/components/ui/button"
 import { Delete } from "lucide-react"
 
 function getTextFromFrequency(frequency: string) {
