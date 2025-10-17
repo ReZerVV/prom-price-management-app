@@ -5,7 +5,6 @@ import { getAnyoneProductForCheck } from "../api/prom"
 async function checkPromApiKey() {
   try {
     const res = await getAnyoneProductForCheck()
-    console.log(res.status)
     switch (res.status) {
       case 200: {
         return true
@@ -15,7 +14,6 @@ async function checkPromApiKey() {
       }
     }
   } catch (err) {
-    console.log(err)
     return false
   }
 }

@@ -4,7 +4,7 @@ import {
   Response,
 } from "../../types"
 import {
-  getAllAutomations,
+  getAutomations,
   scheduler,
 } from "../services/automations.service"
 import { getChangesGroupById } from "../services/changes.service"
@@ -15,17 +15,12 @@ export async function getAutomationsHandler(
   Response<(Automation & { changesGroup: ChangesGroup })[]>
 > {
   try {
-    const data = await getAllAutomations().then(
-      (automations) =>
-        Promise.all(
-          automations.map(async (automation) => ({
-            ...automation,
-            changesGroup: await getChangesGroupById(
-              automation.changesGroupId,
-            ),
-          })),
-        ),
-    )
+    const data = getAutomations().map((automation) => ({
+      ...automation,
+      changesGroup: getChangesGroupById(
+        automation.changesGroupId,
+      ),
+    }))
 
     return {
       isSuccess: true,
@@ -44,7 +39,7 @@ export async function getAutomationsHandler(
 }
 
 export type RemoveAutomationsRequest = {
-  automationId: number
+  automationId: string
 }
 export async function removeAutomationHandler(
   _: Electron.IpcMainInvokeEvent,

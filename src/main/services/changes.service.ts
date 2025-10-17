@@ -6,24 +6,7 @@ import {
   PriceMarkupCategorySetting,
   PriceMarkupOfferSetting,
 } from "../../types"
-import {
-  priceMarkupChanges,
-  priceMarkupChangesGroups,
-  priceMarkupChangesLogs,
-} from "../db/schema"
-import { getDB } from "../db"
-import { desc, eq } from "drizzle-orm"
-
-export async function getChangesGroupById(
-  changesGroupId: number,
-) {
-  return getDB()
-    .select()
-    .from(priceMarkupChangesGroups)
-    .where(eq(priceMarkupChangesGroups.id, changesGroupId))
-    .limit(1)
-    .then((res) => res[0])
-}
+import * as changesRepository from "../repositories/changes.repository"
 
 function getCategorySettingByCategoryId(
   categoryId: string,
@@ -31,7 +14,7 @@ function getCategorySettingByCategoryId(
   categorySettings: PriceMarkupCategorySetting[],
 ): PriceMarkupCategorySetting {
   const categorySetting = categorySettings.find(
-    (s) => s.categoryId.toString() === categoryId,
+    (s) => s.categoryId === categoryId,
   )
 
   if (categorySetting) {
@@ -39,7 +22,7 @@ function getCategorySettingByCategoryId(
   }
 
   const category = categories.find(
-    (c) => c.id.toString() === categoryId,
+    (c) => c.id === categoryId,
   )
 
   if (category.parentId) {
@@ -115,21 +98,6 @@ export function createChangesFromSettings(
         offer.price *
           (1 + globalSettings.markupPercentage! / 100),
       )
-      if (
-        newPrice >=
-        newPrice + (offer.oldPrice - offer.price)
-      ) {
-        console.log({
-          newPrice,
-          offerPrice: offer.price,
-          markup: globalSettings.markupPercentage,
-          oldPrice: offer.oldPrice,
-          newOldPrice:
-            offer.oldPrice !== 0
-              ? newPrice + (offer.oldPrice - offer.price)
-              : null,
-        })
-      }
       offerChanges.push({
         offerId: offer.id,
         newPrice,
@@ -144,67 +112,54 @@ export function createChangesFromSettings(
   return offerChanges
 }
 
-export async function getAllChangesFromGroup(
-  changesGroupId: number,
+export function getAllChangesFromGroup(
+  changesGroupId: string,
 ) {
-  return getDB()
-    .select()
-    .from(priceMarkupChanges)
-    .where(
-      eq(priceMarkupChanges.changesGroupId, changesGroupId),
-    )
+  return changesRepository.getChangesGroupById(
+    changesGroupId,
+  ).changes
 }
 
 export function createChangesLog(
-  changesGroupId: number,
+  changesGroupId: string,
   status: "success" | "failed",
   type: "automation" | "custom",
   numberOfSuccessfullyChangedOffers?: number,
 ) {
-  return getDB().insert(priceMarkupChangesLogs).values({
+  return changesRepository.createChangesLog(
     changesGroupId,
     status,
     type,
     numberOfSuccessfullyChangedOffers,
-    createdAt: new Date().toISOString(),
-  })
+  )
 }
 
-export async function createChangesGroup(
+export function createChangesGroup(
   catalogUrls: string[],
   numberOfAllOffers: number,
   offerChanges: OfferChange[],
 ) {
-  const [{ changesGroupId }] = await getDB()
-    .insert(priceMarkupChangesGroups)
-    .values({
-      catalogUrls,
-      numberOfAllOffers,
-    })
-    .returning({
-      changesGroupId: priceMarkupChangesGroups.id,
-    })
-
-  await getDB()
-    .insert(priceMarkupChanges)
-    .values(
-      offerChanges.map((offerChange) => ({
-        ...offerChange,
-        changesGroupId,
-      })),
-    )
-
-  return changesGroupId
+  return changesRepository.createChangesGroup(
+    catalogUrls,
+    numberOfAllOffers,
+    offerChanges,
+  )
 }
 
-export async function getChangesLogs(
-  page = 1,
-  perPage = 10,
-) {
-  return getDB()
-    .select()
-    .from(priceMarkupChangesLogs)
-    .orderBy(desc(priceMarkupChangesLogs.createdAt))
-    .limit(perPage)
-    .offset((page - 1) * perPage)
+export function getChangesLogs(page = 1, perPage = 10) {
+  return changesRepository
+    .getChangesLogs()
+    .sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() -
+        new Date(a.createdAt).getTime(),
+    )
+    .slice(
+      (page - 1) * perPage,
+      (page - 1) * perPage + perPage,
+    )
+}
+
+export function getChangesGroupById(id: string) {
+  return changesRepository.getChangesGroupById(id)
 }

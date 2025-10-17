@@ -1,5 +1,3 @@
-import { automations } from "../db/schema"
-import { getDB } from "../db"
 import {
   createChangesLog,
   getAllChangesFromGroup,
@@ -7,40 +5,16 @@ import {
 import { updateProductsPrice } from "../api/prom"
 import cron, { ScheduledTask } from "node-cron"
 import { Automation } from "../../types"
-import { eq } from "drizzle-orm"
+import {
+  createAutomation,
+  getAutomations,
+  removeAutomation,
+} from "../repositories/automations.repository"
 
-export async function getAllAutomations() {
-  return getDB().select().from(automations)
-}
-
-async function createAutomation(
-  frequency: string,
-  startTime: string,
-  changesGroupId: number,
-) {
-  const [{ id }] = await getDB()
-    .insert(automations)
-    .values({
-      frequency,
-      startTime,
-      changesGroupId,
-    })
-    .returning({
-      id: automations.id,
-    })
-  return id
-}
-
-async function removeAutomation(id: number) {
-  await getDB()
-    .delete(automations)
-    .where(eq(automations.id, id))
-}
-
-async function startAutomation(changesGroupId: number) {
+async function startAutomation(changesGroupId: string) {
   try {
     const offerChanges =
-      await getAllChangesFromGroup(changesGroupId)
+      getAllChangesFromGroup(changesGroupId)
 
     console.log(offerChanges)
 
@@ -51,7 +25,8 @@ async function startAutomation(changesGroupId: number) {
       offerChangeResults.filter(
         (result) => result.isSuccess,
       ).length
-    await createChangesLog(
+
+    createChangesLog(
       changesGroupId,
       "success",
       "automation",
@@ -61,11 +36,7 @@ async function startAutomation(changesGroupId: number) {
     return true
   } catch (e) {
     console.error(e)
-    await createChangesLog(
-      changesGroupId,
-      "failed",
-      "automation",
-    )
+    createChangesLog(changesGroupId, "failed", "automation")
 
     return false
   }
@@ -92,7 +63,7 @@ class Scheduler {
   private jobs = new Map<string, ScheduledTask>()
 
   async loadAutomations() {
-    const automations = await getAllAutomations()
+    const automations = getAutomations()
 
     for (const automation of automations) {
       const task = cron.schedule(
@@ -102,13 +73,13 @@ class Scheduler {
         ),
         () => startAutomation(automation.changesGroupId),
       )
-      this.jobs.set(automation.id.toString(), task)
+      this.jobs.set(automation.id, task)
     }
   }
 
   async addAutomation(automation: Omit<Automation, "id">) {
     console.log(automation)
-    const automationId = await createAutomation(
+    const automationId = createAutomation(
       automation.frequency,
       automation.startTime,
       automation.changesGroupId,
@@ -121,15 +92,15 @@ class Scheduler {
       ),
       () => startAutomation(automation.changesGroupId),
     )
-    this.jobs.set(automationId.toString(), task)
+    this.jobs.set(automationId, task)
   }
 
-  async removeAutomation(id: number) {
-    await removeAutomation(id)
-    const task = this.jobs.get(id.toString())
+  async removeAutomation(id: string) {
+    removeAutomation(id)
+    const task = this.jobs.get(id)
     if (task) {
       task.stop()
-      this.jobs.delete(id.toString())
+      this.jobs.delete(id)
     }
   }
 
@@ -139,3 +110,5 @@ class Scheduler {
 }
 
 export const scheduler = new Scheduler()
+
+export { getAutomations }

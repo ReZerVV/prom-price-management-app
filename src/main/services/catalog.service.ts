@@ -39,7 +39,7 @@ export function clearAllCachedCatalogs(): void {
 
 export function getCachedCatalogOffersByCatalogUrls(
   catalogUrls: string[],
-  page: number = 1,
+  page = 1,
   pageSize?: number,
   query?: string,
 ): CatalogOffer[] {

@@ -112,18 +112,13 @@ export async function getPriceMarkupChangesLogsHandler(
   >
 > {
   try {
-    const data = await getChangesLogs(
-      req.page,
-      req.perPage,
-    ).then((logs) =>
-      Promise.all(
-        logs.map(async (log) => ({
-          ...log,
-          changesGroup: await getChangesGroupById(
-            log.changesGroupId,
-          ),
-        })),
-      ),
+    const data = getChangesLogs(req.page, req.perPage).map(
+      (log) => ({
+        ...log,
+        changesGroup: getChangesGroupById(
+          log.changesGroupId,
+        ),
+      }),
     )
     return {
       isSuccess: true,

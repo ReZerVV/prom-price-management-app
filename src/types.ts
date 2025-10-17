@@ -9,23 +9,24 @@ export interface Response<T> {
 }
 
 export type PriceMarkupChangesLog = {
-  id: number
-  changesGroupId: number
+  id: string
+  changesGroupId: string
   status: "success" | "failed"
   type: "automation" | "custom"
   numberOfSuccessfullyChangedOffers?: number
   createdAt: string
 }
 export type ChangesGroup = {
-  id: number
+  id: string
   catalogUrls: string[]
   numberOfAllOffers: number
+  changes: OfferChange[]
 }
 export type Automation = {
-  id: number
+  id: string
   frequency: string
   startTime: string
-  changesGroupId: number
+  changesGroupId: string
 }
 export type PriceMarkupGlobalSetting = {
   markupPercentage: number

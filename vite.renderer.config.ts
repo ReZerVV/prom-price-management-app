@@ -4,11 +4,14 @@ import path from "path"
 
 // https://vitejs.dev/config
 export default defineConfig({
-  root: "./src/renderer/app",
   plugins: [react()],
+  root: "./src/renderer/app",
   resolve: {
     alias: {
       "@": path.resolve(__dirname, "src/renderer"),
     },
+  },
+  build: {
+    outDir: path.resolve(__dirname, ".vite/renderer"),
   },
 })
