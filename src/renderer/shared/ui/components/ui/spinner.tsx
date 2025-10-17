@@ -1,6 +1,6 @@
 import { Loader2Icon } from "lucide-react"
 
-import { cn } from "@/shared/ui/lib/utils"
+import { cn } from "@renderer/shared/ui/lib/utils"
 
 function Spinner({
   className,

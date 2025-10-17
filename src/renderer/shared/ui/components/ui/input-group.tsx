@@ -4,10 +4,10 @@ import {
   type VariantProps,
 } from "class-variance-authority"
 
-import { cn } from "@/shared/ui/lib/utils"
-import { Button } from "@/shared/ui/components/ui/button"
-import { Input } from "@/shared/ui/components/ui/input"
-import { Textarea } from "@/shared/ui/components/ui/textarea"
+import { cn } from "@renderer/shared/ui/lib/utils"
+import { Button } from "@renderer/shared/ui/components/ui/button"
+import { Input } from "@renderer/shared/ui/components/ui/input"
+import { Textarea } from "@renderer/shared/ui/components/ui/textarea"
 
 function InputGroup({
   className,

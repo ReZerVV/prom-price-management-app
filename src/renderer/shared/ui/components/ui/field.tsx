@@ -4,9 +4,9 @@ import {
   type VariantProps,
 } from "class-variance-authority"
 
-import { cn } from "@/shared/ui/lib/utils"
-import { Label } from "@/shared/ui/components/ui/label"
-import { Separator } from "@/shared/ui/components/ui/separator"
+import { cn } from "@renderer/shared/ui/lib/utils"
+import { Label } from "@renderer/shared/ui/components/ui/label"
+import { Separator } from "@renderer/shared/ui/components/ui/separator"
 
 function FieldSet({
   className,

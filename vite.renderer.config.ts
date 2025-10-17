@@ -8,7 +8,7 @@ export default defineConfig({
   root: "./src/renderer/app",
   resolve: {
     alias: {
-      "@": path.resolve(__dirname, "src/renderer"),
+      "@renderer": path.resolve(__dirname, "src/renderer"),
     },
   },
   build: {

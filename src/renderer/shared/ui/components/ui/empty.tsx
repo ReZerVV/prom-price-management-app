@@ -3,7 +3,7 @@ import {
   type VariantProps,
 } from "class-variance-authority"
 
-import { cn } from "@/shared/ui/lib/utils"
+import { cn } from "@renderer/shared/ui/lib/utils"
 
 function Empty({
   className,

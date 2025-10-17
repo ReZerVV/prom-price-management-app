@@ -7,14 +7,14 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
-} from "@/shared/ui/components/ui/sidebar"
+} from "@renderer/shared/ui/components/ui/sidebar"
 import {
   Calculator,
   LayoutDashboard,
   Settings,
   Zap,
 } from "lucide-react"
-import { useLocation, Link } from "react-router-dom"
+import { Link } from "react-router-dom"
 
 const routes = [
   {
@@ -46,8 +46,6 @@ const routes = [
 ]
 
 export function AppSidebar() {
-  const location = useLocation()
-
   return (
     <Sidebar className={"w-[200px]"}>
       <SidebarContent>
