@@ -15,7 +15,7 @@ const config: ForgeConfig = {
   rebuildConfig: {},
   makers: [
     new MakerSquirrel({
-      name: "Prom Price Management App",
+      name: "prom_price_management_app",
       setupIcon: "public/icons/icon.ico",
       noMsi: true,
     }),
