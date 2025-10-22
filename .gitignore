@@ -90,5 +90,8 @@ typings/
 
 # Electron-Forge
 out/
+dist-electron/
+
+.zed/
 
 package-lock.json
