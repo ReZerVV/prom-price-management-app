@@ -1,7 +1,9 @@
 import {
   ChangesGroup,
-  OfferChange,
+  PriceMarkupCategorySetting,
   PriceMarkupChangesLog,
+  PriceMarkupGlobalSetting,
+  PriceMarkupOfferSetting,
 } from "../../types"
 import { appendToArray, get, has, set } from "../store"
 
@@ -47,7 +49,9 @@ export function getChangesLogs() {
 export function createChangesGroup(
   catalogUrls: string[],
   numberOfAllOffers: number,
-  offerChanges: OfferChange[],
+  globalSettings?: PriceMarkupGlobalSetting,
+  categorySettings?: PriceMarkupCategorySetting[],
+  offerSettings?: PriceMarkupOfferSetting[],
 ) {
   if (!has("changes_groups")) {
     set("changes_groups", [])
@@ -58,7 +62,11 @@ export function createChangesGroup(
     id,
     catalogUrls,
     numberOfAllOffers,
-    changes: offerChanges,
+    settings: {
+      global: globalSettings,
+      categories: categorySettings,
+      offers: offerSettings,
+    },
   } as ChangesGroup)
 
   return id

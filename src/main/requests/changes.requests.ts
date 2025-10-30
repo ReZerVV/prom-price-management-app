@@ -7,6 +7,7 @@ import {
   Response,
 } from "../../types"
 import {
+  clearCachedCatalog,
   getCachedCatalogCategoriesByCatalogUrls,
   getCachedCatalogOffersByCatalogUrls,
 } from "../services/catalog.service"
@@ -48,10 +49,12 @@ export async function runPriceMarkupSettingsHandler(
     req.offerSettings,
   )
 
-  const changesGroupId = await createChangesGroup(
+  const changesGroupId = createChangesGroup(
     req.catalogUrls,
     catalogOffers.length,
-    offerChanges,
+    req.globalSettings,
+    req.categorySettings,
+    req.offerSettings,
   )
 
   if (req.automation) {
@@ -60,6 +63,9 @@ export async function runPriceMarkupSettingsHandler(
       startTime: req.automation.startTime,
       changesGroupId,
     })
+    for (const catalogUrl of req.catalogUrls) {
+      clearCachedCatalog(catalogUrl)
+    }
     return {
       isSuccess: true,
     }
@@ -71,22 +77,20 @@ export async function runPriceMarkupSettingsHandler(
         offerChangeResults.filter(
           (result) => result.isSuccess,
         ).length
-      await createChangesLog(
+      createChangesLog(
         changesGroupId,
         "success",
         "custom",
         numberOfSuccessfullyChangedOffers,
       )
+      for (const catalogUrl of req.catalogUrls) {
+        clearCachedCatalog(catalogUrl)
+      }
       return {
         isSuccess: true,
       }
     } catch (e) {
-      console.log(e)
-      await createChangesLog(
-        changesGroupId,
-        "failed",
-        "custom",
-      )
+      createChangesLog(changesGroupId, "failed", "custom")
       return {
         isSuccess: false,
         error: {

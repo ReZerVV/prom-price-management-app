@@ -1,6 +1,7 @@
 import {
+  createChangesFromSettings,
   createChangesLog,
-  getAllChangesFromGroup,
+  getChangesGroupById,
 } from "./changes.service"
 import { updateProductsPrice } from "../api/prom"
 import cron, { ScheduledTask } from "node-cron"
@@ -10,13 +11,37 @@ import {
   getAutomations,
   removeAutomation,
 } from "../repositories/automations.repository"
+import {
+  loadCatalogByUrl,
+  parseCatalog,
+} from "./catalog.service"
 
 async function startAutomation(changesGroupId: string) {
   try {
-    const offerChanges =
-      getAllChangesFromGroup(changesGroupId)
+    const changesGroup = getChangesGroupById(changesGroupId)
 
-    console.log(offerChanges)
+    const categories = []
+    const offers = []
+    for (const catalogUrl of changesGroup.catalogUrls) {
+      const catalog = parseCatalog(
+        await loadCatalogByUrl(catalogUrl),
+      )
+      categories.push(...catalog.categories)
+      offers.push(...catalog.offers)
+    }
+
+    console.log({
+      categories,
+      offers,
+    })
+
+    const offerChanges = createChangesFromSettings(
+      offers,
+      categories,
+      changesGroup.settings.global,
+      changesGroup.settings.categories,
+      changesGroup.settings.offers,
+    )
 
     const offerChangeResults =
       await updateProductsPrice(offerChanges)
@@ -78,7 +103,6 @@ class Scheduler {
   }
 
   async addAutomation(automation: Omit<Automation, "id">) {
-    console.log(automation)
     const automationId = createAutomation(
       automation.frequency,
       automation.startTime,

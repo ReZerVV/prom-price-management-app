@@ -1,6 +1,5 @@
 import { app, BrowserWindow, ipcMain } from "electron"
 import path from "node:path"
-import url from "node:url"
 import started from "electron-squirrel-startup"
 import {
   getPromApiKeyHandler,
@@ -10,6 +9,7 @@ import {
   getCatalogCategoriesHandler,
   getCatalogOffersHandler,
   loadCatalogsHandler,
+  unloadCardlogsHandler,
 } from "./requests/catalog.requests"
 import {
   getPriceMarkupChangesLogsHandler,
@@ -80,6 +80,7 @@ app.on("activate", () => {
 ipcMain.handle("save-prom-api-key", savePromApiKeyHandler)
 ipcMain.handle("get-prom-api-key", getPromApiKeyHandler)
 ipcMain.handle("load-catalogs", loadCatalogsHandler)
+ipcMain.handle("unload-catalogs", unloadCardlogsHandler)
 ipcMain.handle(
   "get-catalog-categories",
   getCatalogCategoriesHandler,

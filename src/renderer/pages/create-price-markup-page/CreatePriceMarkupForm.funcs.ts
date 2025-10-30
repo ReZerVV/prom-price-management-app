@@ -12,6 +12,12 @@ export async function loadCatalogs(
   return (window as any).api.loadCatalogs(catalogUrls)
 }
 
+export async function unloadCatalogs(
+  catalogUrls: string[],
+): Promise<Response<null>> {
+  return (window as any).api.unloadCatalogs(catalogUrls)
+}
+
 export async function searchCategories(
   catalogUrls: string[],
   query: string,

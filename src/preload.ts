@@ -6,10 +6,7 @@ import {
   GetPriceMarkupChangesLogsRequest,
   RunPriceMarkupSettingsRequest,
 } from "./main/requests/changes.requests"
-import {
-  GetAutomationsRequest,
-  RemoveAutomationsRequest,
-} from "./main/requests/automations.requests"
+import { RemoveAutomationsRequest } from "./main/requests/automations.requests"
 
 contextBridge.exposeInMainWorld("api", {
   setPromApiKey: (params: { promApiKey: string }) =>
@@ -20,6 +17,9 @@ contextBridge.exposeInMainWorld("api", {
 
   loadCatalogs: (catalogUrls: string[]) =>
     ipcRenderer.invoke("load-catalogs", { catalogUrls }),
+
+  unloadCatalogs: (catalogUrls: string[]) =>
+    ipcRenderer.invoke("unload-catalogs", { catalogUrls }),
 
   getCatalogCategories: (params: {
     catalogUrls: string[]

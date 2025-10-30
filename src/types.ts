@@ -20,7 +20,11 @@ export type ChangesGroup = {
   id: string
   catalogUrls: string[]
   numberOfAllOffers: number
-  changes: OfferChange[]
+  settings: {
+    global: PriceMarkupGlobalSetting
+    categories: PriceMarkupCategorySetting[]
+    offers: PriceMarkupOfferSetting[]
+  }
 }
 export type Automation = {
   id: string

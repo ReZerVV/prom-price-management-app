@@ -112,14 +112,6 @@ export function createChangesFromSettings(
   return offerChanges
 }
 
-export function getAllChangesFromGroup(
-  changesGroupId: string,
-) {
-  return changesRepository.getChangesGroupById(
-    changesGroupId,
-  ).changes
-}
-
 export function createChangesLog(
   changesGroupId: string,
   status: "success" | "failed",
@@ -137,12 +129,16 @@ export function createChangesLog(
 export function createChangesGroup(
   catalogUrls: string[],
   numberOfAllOffers: number,
-  offerChanges: OfferChange[],
+  globalSettings?: PriceMarkupGlobalSetting,
+  categorySettings?: PriceMarkupCategorySetting[],
+  offerSettings?: PriceMarkupOfferSetting[],
 ) {
   return changesRepository.createChangesGroup(
     catalogUrls,
     numberOfAllOffers,
-    offerChanges,
+    globalSettings,
+    categorySettings,
+    offerSettings,
   )
 }
 

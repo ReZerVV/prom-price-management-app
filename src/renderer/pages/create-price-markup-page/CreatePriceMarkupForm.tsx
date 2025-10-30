@@ -32,6 +32,7 @@ import {
   runPriceMarkupSettings,
   searchCategories,
   searchOffers,
+  unloadCatalogs,
 } from "@/pages/create-price-markup-page/CreatePriceMarkupForm.funcs"
 import { Spinner } from "@/components/ui/spinner"
 import {
@@ -81,6 +82,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
+import { useEffect } from "react"
 
 const priceMarkupFormSchema = z
   .object({
@@ -255,6 +257,17 @@ const CreatePriceMarkupForm: FC = () => {
       )
     }
   }
+  useEffect(() => {
+    return () => {
+      const catalogUrls = priceMarkupForm
+        .getValues("catalogUrls")
+        .map(
+          (catalogUrl: { url: string }) => catalogUrl.url,
+        )
+      console.log("очистка данных", catalogUrls)
+      unloadCatalogs(catalogUrls)
+    }
+  }, [])
 
   const {
     fields: categoryFields,

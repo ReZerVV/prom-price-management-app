@@ -1,4 +1,5 @@
 import {
+  clearCachedCatalog,
   getCachedCatalogCategoriesByCatalogUrls,
   getCachedCatalogOffersByCatalogUrls,
   getCategoryOfferCountRecursive,
@@ -6,7 +7,35 @@ import {
   parseCatalog,
   setCachedCatalog,
 } from "../services/catalog.service"
-import { CatalogCategory, CatalogOffer, Response } from "../../types"
+import {
+  CatalogCategory,
+  CatalogOffer,
+  Response,
+} from "../../types"
+
+export interface UnloadCatalogsRequest {
+  catalogUrls: string[]
+}
+
+export async function unloadCardlogsHandler(
+  _: Electron.IpcMainInvokeEvent,
+  req: UnloadCatalogsRequest,
+): Promise<Response<null>> {
+  try {
+    for (const catalogUrl of req.catalogUrls) {
+      if (catalogUrl !== "") {
+        clearCachedCatalog(catalogUrl)
+      }
+    }
+    return {
+      isSuccess: true,
+    }
+  } catch {
+    return {
+      isSuccess: false,
+    }
+  }
+}
 
 export interface LoadCatalogsRequest {
   catalogUrls: string[]
@@ -69,7 +98,10 @@ export async function loadCatalogsHandler(
   return {
     data: Object.fromEntries(data),
     isSuccess: errors.size === 0,
-    error: errors.size > 0 ? Object.fromEntries(errors) : undefined,
+    error:
+      errors.size > 0
+        ? Object.fromEntries(errors)
+        : undefined,
   }
 }
 
@@ -82,15 +114,21 @@ interface GetCatalogCategoriesRequest {
 
 export async function getCatalogCategoriesHandler(
   _: Electron.IpcMainInvokeEvent,
-  { page = 1, pageSize, query, catalogUrls }: GetCatalogCategoriesRequest,
+  {
+    page = 1,
+    pageSize,
+    query,
+    catalogUrls,
+  }: GetCatalogCategoriesRequest,
 ): Promise<Response<CatalogCategory[]>> {
   try {
-    const categories = getCachedCatalogCategoriesByCatalogUrls(
-      catalogUrls,
-      page,
-      pageSize,
-      query,
-    )
+    const categories =
+      getCachedCatalogCategoriesByCatalogUrls(
+        catalogUrls,
+        page,
+        pageSize,
+        query,
+      )
     return {
       isSuccess: true,
       data: categories,
@@ -116,7 +154,12 @@ interface GetCatalogOffersRequest {
 
 export async function getCatalogOffersHandler(
   _: Electron.IpcMainInvokeEvent,
-  { page = 1, pageSize, query, catalogUrls }: GetCatalogOffersRequest,
+  {
+    page = 1,
+    pageSize,
+    query,
+    catalogUrls,
+  }: GetCatalogOffersRequest,
 ): Promise<Response<CatalogOffer[]>> {
   try {
     const offers = getCachedCatalogOffersByCatalogUrls(
