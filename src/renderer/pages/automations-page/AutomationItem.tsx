@@ -1,12 +1,12 @@
-import { FC } from "react"
+import React, { FC } from "react"
 import {
-  Item,
-  ItemActions,
-  ItemContent,
-  ItemDescription,
-  ItemTitle,
-} from "@/components/ui/item"
-import { Button } from "@/components/ui/button"
+  Card,
+  CardContent,
+  CardActions,
+  IconButton,
+  Typography,
+  Stack,
+} from "@mui/material"
 import { Delete } from "lucide-react"
 
 function getTextFromFrequency(frequency: string) {
@@ -31,27 +31,36 @@ const AutomationItem: FC<AutomationItemProps> = ({
   onDelete,
 }) => {
   return (
-    <Item variant="outline">
-      <ItemContent>
-        <ItemTitle className={"flex flex-col gap-1"}>
-          {catalogUrls.map((catalogUrl, index) => (
-            <span key={index}>{catalogUrl}</span>
-          ))}
-        </ItemTitle>
-        <ItemDescription>
-          {getTextFromFrequency(frequency)} о {startTime}
-        </ItemDescription>
-      </ItemContent>
-      <ItemActions>
-        <Button
-          size="icon-sm"
-          variant="ghost"
-          onClick={onDelete}
-        >
+    <Card
+      variant="outlined"
+      sx={{
+        display: "flex",
+        justifyContent: "space-between",
+      }}
+    >
+      <CardContent>
+        <Stack spacing={0.5}>
+          {catalogUrls.map(
+            (catalogUrl: string, index: number) => (
+              <Typography key={index} variant="body2">
+                {catalogUrl}
+              </Typography>
+            ),
+          )}
+          <Typography
+            variant="caption"
+            color="text.secondary"
+          >
+            {getTextFromFrequency(frequency)} о {startTime}
+          </Typography>
+        </Stack>
+      </CardContent>
+      <CardActions>
+        <IconButton size="small" onClick={onDelete}>
           <Delete />
-        </Button>
-      </ItemActions>
-    </Item>
+        </IconButton>
+      </CardActions>
+    </Card>
   )
 }
 

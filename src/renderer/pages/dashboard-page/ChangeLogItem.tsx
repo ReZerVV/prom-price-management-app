@@ -1,13 +1,12 @@
 import { FC } from "react"
 import {
-  Item,
-  ItemContent,
-  ItemDescription,
-  ItemMedia,
-  ItemTitle,
-} from "@/components/ui/item"
+  Card,
+  CardContent,
+  Stack,
+  Typography,
+  Box,
+} from "@mui/material"
 import { Hand, Zap } from "lucide-react"
-import { cn } from "@/lib/utils"
 
 export interface ChangeLogItemProps {
   catalogUrls: string[]
@@ -24,35 +23,69 @@ const ChangeLogItem: FC<ChangeLogItemProps> = ({
   numberOfSuccessfullyChangedOffers,
 }) => {
   return (
-    <Item
-      className={cn(
-        "",
-        status === "failed"
-          ? "border-[#c95d63] bg-[#c95d63]/10"
-          : "border-[#87b37a] bg-[#87b37a]/10",
-      )}
-      variant={"outline"}
+    <Card
+      variant="outlined"
+      sx={{
+        borderColor:
+          status === "failed" ? "#c95d63" : "#87b37a",
+        bgcolor:
+          status === "failed"
+            ? "rgba(201,93,99,0.1)"
+            : "rgba(135,179,122,0.1)",
+      }}
     >
-      <ItemMedia variant="icon">
-        {type === "automation" ? <Zap /> : <Hand />}
-      </ItemMedia>
-      <ItemContent>
-        <ItemTitle
-          className={"flex flex-col gap-1 items-start"}
+      <CardContent>
+        <Stack
+          direction="row"
+          spacing={1.5}
+          alignItems="flex-start"
         >
-          <span>
-            {new Date(createdAt).toLocaleString()}
-          </span>
-          {catalogUrls.map((catalogUrl, index) => (
-            <span key={index}>{catalogUrl}</span>
-          ))}
-        </ItemTitle>
-        <ItemDescription>
-          Оновлено товарів:{" "}
-          {numberOfSuccessfullyChangedOffers} шт.
-        </ItemDescription>
-      </ItemContent>
-    </Item>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+            }}
+          >
+            {type === "automation" ? (
+              <Zap
+                size={16}
+                color={
+                  status === "failed"
+                    ? "#c95d63"
+                    : "#87b37a"
+                }
+              />
+            ) : (
+              <Hand
+                size={16}
+                color={
+                  status === "failed"
+                    ? "#c95d63"
+                    : "#87b37a"
+                }
+              />
+            )}
+          </Box>
+          <Stack spacing={0.5}>
+            <Typography variant="body2">
+              {new Date(createdAt).toLocaleString()}
+            </Typography>
+            {catalogUrls.map((catalogUrl, index) => (
+              <Typography key={index} variant="body2">
+                {catalogUrl}
+              </Typography>
+            ))}
+            <Typography
+              variant="caption"
+              color="text.secondary"
+            >
+              Оновлено товарів:{" "}
+              {numberOfSuccessfullyChangedOffers} шт.
+            </Typography>
+          </Stack>
+        </Stack>
+      </CardContent>
+    </Card>
   )
 }
 

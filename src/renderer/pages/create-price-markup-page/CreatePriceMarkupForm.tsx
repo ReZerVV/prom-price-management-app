@@ -1,88 +1,57 @@
-import { FC, useState } from "react"
+import React, {
+  FC,
+  useEffect,
+  useMemo,
+  useState,
+} from "react"
 import {
+  Box,
+  Button,
   Card,
   CardContent,
-  CardDescription,
-  CardFooter,
   CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
-import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { useFieldArray, useForm } from "react-hook-form"
-import { z } from "zod"
-import { zodResolver } from "@hookform/resolvers/zod"
-import { Button } from "@/components/ui/button"
-import {
-  InputGroup,
-  InputGroupAddon,
-  InputGroupButton,
-  InputGroupInput,
-} from "@/components/ui/input-group"
-import { CircleCheck, Delete, Percent } from "lucide-react"
-import {
-  loadCatalogs,
-  runPriceMarkupSettings,
-  searchCategories,
-  searchOffers,
-  unloadCatalogs,
-} from "@/pages/create-price-markup-page/CreatePriceMarkupForm.funcs"
-import { Spinner } from "@/components/ui/spinner"
-import {
+  CardActions,
+  CircularProgress,
+  Divider,
+  IconButton,
+  InputAdornment,
+  MenuItem,
+  Stack,
+  Tab,
   Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs"
-import {
-  ButtonGroup,
-  ButtonGroupText,
-} from "@/components/ui/button-group"
-import {
   Table,
   TableBody,
-  TableCaption,
   TableCell,
   TableHead,
-  TableHeader,
   TableRow,
-} from "@/components/ui/table"
+  TextField,
+  Typography,
+  Alert,
+} from "@mui/material"
+import DeleteIcon from "@mui/icons-material/Delete"
+import CheckCircleIcon from "@mui/icons-material/CheckCircle"
+import { z } from "zod"
 import {
-  Field,
-  FieldDescription,
-  FieldLabel,
-} from "@/components/ui/field"
+  useFieldArray,
+  useForm,
+  FormProvider,
+  Controller,
+} from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import {
+  loadCatalogs,
+  unloadCatalogs,
+  searchCategories,
+  searchOffers,
+  runPriceMarkupSettings,
+} from "@/pages/create-price-markup-page/CreatePriceMarkupForm.funcs"
 import {
   CatalogCategory,
   CatalogOffer,
   OfferChange,
   PriceMarkupCategorySetting,
 } from "../../../types"
-import {
-  Item,
-  ItemContent,
-  ItemDescription,
-  ItemTitle,
-} from "@/components/ui/item"
 import { CreatePriceMarkupItemDialogForm } from "@/pages/create-price-markup-page/CreatePriceMarkupItemDialogForm"
-import { Separator } from "@/components/ui/separator"
-import {
-  Select,
-  SelectContent,
-  SelectGroup,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
-import { Input } from "@/components/ui/input"
-import { useEffect } from "react"
 
 const priceMarkupFormSchema = z
   .object({
@@ -137,6 +106,7 @@ const priceMarkupFormSchema = z
             .number("Потрібно вказати число")
             .min(0, "Мінімальне значення 0%")
             .optional(),
+          numberOfOffers: z.number().optional(),
         }),
       )
       .refine(
@@ -190,7 +160,6 @@ const priceMarkupFormSchema = z
         data.categories.length > 0
       const hasOffers =
         Array.isArray(data.offers) && data.offers.length > 0
-
       return hasGlobal || hasCategories || hasOffers
     },
     {
@@ -199,21 +168,36 @@ const priceMarkupFormSchema = z
       path: ["_form"],
     },
   )
+
 type PriceMarkupFormSchemaType = z.infer<
   typeof priceMarkupFormSchema
 >
 
 const CreatePriceMarkupForm: FC = () => {
-  const [step, setStep] = useState(1)
-  const [isLoading, setIsLoading] = useState(false)
+  const [step, setStep] = useState<number>(1)
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [settingsTab, setSettingsTab] = useState<
+    "global" | "categories" | "offers"
+  >("global")
 
   const priceMarkupForm =
     useForm<PriceMarkupFormSchemaType>({
       resolver: zodResolver(priceMarkupFormSchema),
       defaultValues: {
         catalogUrls: [{ url: "" }],
+        automation: {
+          frequency: undefined,
+          startTime: undefined,
+        },
+        global: {
+          markupPercentage: undefined,
+        },
+        categories: [],
+        offers: [],
       },
+      mode: "onChange",
     })
+
   const {
     fields: catalogUrlFields,
     append: appendCatalogUrlField,
@@ -222,52 +206,6 @@ const CreatePriceMarkupForm: FC = () => {
     control: priceMarkupForm.control,
     name: "catalogUrls",
   })
-  const onNextPriceMarkupForm = async () => {
-    const validationResult =
-      await priceMarkupForm.trigger("catalogUrls")
-    if (!validationResult) {
-      return
-    }
-    setIsLoading(true)
-
-    const catalogUrls = priceMarkupForm
-      .getValues("catalogUrls")
-      .map((v: { url: string }) => v.url)
-    const res = await loadCatalogs(catalogUrls)
-    setIsLoading(false)
-    if (res.isSuccess) {
-      setStep(2)
-    } else {
-      priceMarkupForm.clearErrors("catalogUrls")
-      catalogUrls.forEach(
-        (item: { url: string }, index: number) => {
-          const error = res.error?.[item.url]
-          if (error) {
-            priceMarkupForm.setError(
-              `catalogUrls.${index}.url`,
-              {
-                type: "manual",
-                message:
-                  error.message || "Помилка завантаження",
-              },
-              { shouldFocus: index === 0 },
-            )
-          }
-        },
-      )
-    }
-  }
-  useEffect(() => {
-    return () => {
-      const catalogUrls = priceMarkupForm
-        .getValues("catalogUrls")
-        .map(
-          (catalogUrl: { url: string }) => catalogUrl.url,
-        )
-      console.log("очистка данных", catalogUrls)
-      unloadCatalogs(catalogUrls)
-    }
-  }, [])
 
   const {
     fields: categoryFields,
@@ -277,19 +215,6 @@ const CreatePriceMarkupForm: FC = () => {
     control: priceMarkupForm.control,
     name: "categories",
   })
-  const onSearchCategories = async (
-    query: string,
-  ): Promise<CatalogCategory[]> => {
-    const catalogUrls = priceMarkupForm
-      .getValues("catalogUrls")
-      .map((catalogUrl: { url: string }) => catalogUrl.url)
-    const res = await searchCategories(catalogUrls, query)
-    if (res.isSuccess) {
-      return res.data
-    } else {
-      return []
-    }
-  }
 
   const {
     fields: offerFields,
@@ -299,18 +224,80 @@ const CreatePriceMarkupForm: FC = () => {
     control: priceMarkupForm.control,
     name: "offers",
   })
+
+  const hasValidationErrors = useMemo(() => {
+    const errors = priceMarkupForm.formState.errors as any
+    return Boolean(
+      errors?._form ||
+        errors?.categories ||
+        errors?.offers ||
+        errors?.global,
+    )
+  }, [priceMarkupForm.formState.errors])
+
+  const onNextPriceMarkupForm = async () => {
+    const valid =
+      await priceMarkupForm.trigger("catalogUrls")
+    if (!valid) return
+
+    setIsLoading(true)
+    const catalogUrls = priceMarkupForm
+      .getValues("catalogUrls")
+      .map((v: { url: string }) => v.url)
+    const res = await loadCatalogs(catalogUrls)
+    setIsLoading(false)
+
+    if (res.isSuccess) {
+      setStep(2)
+    } else {
+      // Assign per-field errors from response
+      priceMarkupForm.clearErrors("catalogUrls")
+      catalogUrls.forEach((url: string, index: number) => {
+        const error = (res as any).error?.[url]
+        if (error) {
+          priceMarkupForm.setError(
+            `catalogUrls.${index}.url` as any,
+            {
+              type: "manual",
+              message:
+                error.message || "Помилка завантаження",
+            },
+          )
+        }
+      })
+    }
+  }
+
+  useEffect(() => {
+    return () => {
+      const catalogUrls = priceMarkupForm
+        .getValues("catalogUrls")
+        .map((v: { url: string }) => v.url)
+      unloadCatalogs(catalogUrls)
+    }
+  }, [])
+
+  const onSearchCategories = async (
+    query: string,
+  ): Promise<CatalogCategory[]> => {
+    const catalogUrls = priceMarkupForm
+      .getValues("catalogUrls")
+      .map((v: { url: string }) => v.url)
+    const res = await searchCategories(catalogUrls, query)
+    return res.isSuccess
+      ? (res.data as CatalogCategory[])
+      : []
+  }
+
   const onSearchOffers = async (
     query: string,
   ): Promise<CatalogOffer[]> => {
     const catalogUrls = priceMarkupForm
       .getValues("catalogUrls")
-      .map((catalogUrl: { url: string }) => catalogUrl.url)
+      .map((v: { url: string }) => v.url)
     const res = await searchOffers(catalogUrls, query)
-    if (res.isSuccess) {
-      return res.data
-    } else {
-      return []
-    }
+    console.log(res)
+    return res.isSuccess ? (res.data as CatalogOffer[]) : []
   }
 
   const onSubmitPriceMarkupForm = async (
@@ -319,32 +306,20 @@ const CreatePriceMarkupForm: FC = () => {
     setStep(3)
     const catalogUrls = priceMarkupForm
       .getValues("catalogUrls")
-      .map((catalogUrl: { url: string }) => catalogUrl.url)
+      .map((v: { url: string }) => v.url)
     const res = await runPriceMarkupSettings({
       catalogUrls,
-      ...(values.automation.frequency &&
-      values.automation.startTime
-        ? {
-            automation: values.automation,
-          }
-        : {
-            automation: undefined,
-          }),
-      ...(values.global.markupPercentage
-        ? {
-            globalSettings: values.global,
-          }
-        : {
-            globalSettings: undefined,
-          }),
+      ...(values.automation?.frequency &&
+      values.automation?.startTime
+        ? { automation: values.automation }
+        : { automation: undefined }),
+      ...(values.global?.markupPercentage
+        ? { globalSettings: values.global }
+        : { globalSettings: undefined }),
       categorySettings: values.categories,
       offerSettings: values.offers,
     })
-    if (res.isSuccess) {
-      setStep(4)
-    } else {
-      setStep(5)
-    }
+    setStep(res.isSuccess ? 4 : 5)
   }
 
   const onResetAutomationSection = () => {
@@ -358,280 +333,322 @@ const CreatePriceMarkupForm: FC = () => {
     priceMarkupForm.reset()
     setStep(1)
     setIsLoading(false)
+    setSettingsTab("global")
   }
 
   return (
-    <Form {...priceMarkupForm}>
+    <FormProvider {...priceMarkupForm}>
       <form
         onSubmit={priceMarkupForm.handleSubmit(
           onSubmitPriceMarkupForm,
         )}
-        className={"flex flex-col gap-4"}
       >
+        {/* Step 1: Catalog URLs */}
         {(step === 1 || step === 2) && (
-          <Card className={"shadow-none"}>
-            <CardHeader>
-              <CardTitle className={"font-normal"}>
-                Джерела даних
-              </CardTitle>
-              <CardDescription className={"text-xs"}>
-                Посилання на файл формату: YML, XML,
-                розміром до 180 МБ. Переконайтеся в тому, що
-                доступ до файлу відкритий.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className={"flex flex-col gap-2"}>
-              {catalogUrlFields.map((field, index) => (
-                <FormField
-                  key={field.id}
-                  control={priceMarkupForm.control}
-                  name={`catalogUrls.${index}.url`}
-                  render={({ field }) => (
-                    <FormItem>
-                      <InputGroup
-                        className={
-                          step !== 1 &&
-                          "border-[#87b37a] bg-[#87b37a]/10"
-                        }
-                      >
-                        <FormControl>
-                          <InputGroupInput
-                            {...field}
-                            placeholder={"https://..."}
-                            disabled={step !== 1}
-                          />
-                        </FormControl>
-                        <InputGroupAddon align="inline-end">
-                          <InputGroupButton
-                            type={"button"}
+          <Card sx={{ mb: 2, boxShadow: "none" }}>
+            <CardHeader
+              title={
+                <Typography variant="h6" fontWeight={400}>
+                  Джерела даних
+                </Typography>
+              }
+              subheader={
+                <Typography variant="caption">
+                  Посилання на файл формату: YML, XML,
+                  розміром до 180 МБ. Переконайтеся в тому,
+                  що доступ до файлу відкритий.
+                </Typography>
+              }
+            />
+            <CardContent>
+              <Stack spacing={1.5}>
+                {catalogUrlFields.map((field, index) => (
+                  <Controller
+                    key={field.id}
+                    name={`catalogUrls.${index}.url`}
+                    control={priceMarkupForm.control}
+                    render={({ field, fieldState }) => (
+                      <Stack direction="row" spacing={1}>
+                        <TextField
+                          {...field}
+                          disabled={step !== 1}
+                          placeholder="https://..."
+                          fullWidth
+                          size="small"
+                          error={!!fieldState.error}
+                          helperText={
+                            fieldState.error?.message
+                          }
+                          InputProps={{
+                            endAdornment:
+                              step !== 1 ? (
+                                <InputAdornment position="end">
+                                  <CheckCircleIcon
+                                    color="success"
+                                    fontSize="small"
+                                  />
+                                </InputAdornment>
+                              ) : undefined,
+                          }}
+                        />
+                        {step === 1 && (
+                          <IconButton
+                            aria-label="remove"
+                            color={
+                              step === 1
+                                ? "error"
+                                : "success"
+                            }
                             onClick={() => {
-                              if (index !== 0) {
+                              if (step !== 1) return
+                              if (index !== 0)
                                 removeCatalogUrlField(index)
-                              } else {
-                                field.onChange("")
-                              }
+                              else field.onChange("")
                             }}
                             disabled={step !== 1}
-                            size="icon-xs"
+                            size="small"
                           >
-                            {step === 1 ? (
-                              <Delete />
-                            ) : (
-                              <CircleCheck
-                                className={"text-[#87b37a]"}
-                              />
-                            )}
-                          </InputGroupButton>
-                        </InputGroupAddon>
-                      </InputGroup>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-              ))}
-              {step === 1 && (
-                <Button
-                  type={"button"}
-                  onClick={appendCatalogUrlField}
-                  variant={"outline"}
-                  className={""}
-                >
-                  + Додати джерело
-                </Button>
-              )}
-            </CardContent>
-            {step === 1 && (
-              <>
-                <Separator className={"my-2 mb-8"} />
-                <CardFooter>
-                  {isLoading ? (
-                    <div
-                      className={
-                        "flex flex-col items-center gap-2 w-full text-center"
+                            <DeleteIcon />
+                          </IconButton>
+                        )}
+                      </Stack>
+                    )}
+                  />
+                ))}
+
+                {step === 1 && (
+                  <Box>
+                    <Button
+                      type="button"
+                      variant="outlined"
+                      onClick={() =>
+                        appendCatalogUrlField({ url: "" })
                       }
                     >
-                      <Spinner />
-                      <h3 className={"font-normal"}>
+                      + Додати джерело
+                    </Button>
+                  </Box>
+                )}
+              </Stack>
+            </CardContent>
+
+            {step === 1 && (
+              <>
+                <Divider />
+                <CardActions sx={{ px: 2, pb: 2 }}>
+                  {isLoading ? (
+                    <Stack
+                      spacing={1}
+                      alignItems="center"
+                      sx={{ width: "100%", py: 1 }}
+                    >
+                      <CircularProgress size={20} />
+                      <Typography
+                        variant="body2"
+                        fontWeight={400}
+                      >
                         Завантаження...
-                      </h3>
-                      <p
-                        className={
-                          "text-xs text-muted-foreground"
-                        }
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
+                        textAlign="center"
                       >
                         Процесс завантаження даних з джерел,
                         це може зайняти декілька хвилин будь
                         ласка зачекайте.
-                      </p>
-                    </div>
+                      </Typography>
+                    </Stack>
                   ) : (
                     <Button
-                      type="button"
+                      variant="contained"
                       onClick={onNextPriceMarkupForm}
                     >
                       Далі
                     </Button>
                   )}
-                </CardFooter>
+                </CardActions>
               </>
             )}
           </Card>
         )}
 
+        {/* Step 2: Settings */}
         {step === 2 && (
           <>
-            <Card className={"shadow-none"}>
-              <CardHeader>
-                <CardTitle className={"font-normal"}>
-                  Налаштування автоматичної націнки
-                </CardTitle>
-                <CardDescription className={"text-xs"}>
-                  Вкажіть правила для автоматизації націнки
-                  товарів. Поле не є обов'язковим. При
-                  заповненні, націнка буде застосована
-                  згідно з вказаними правилами.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className={"flex gap-2"}>
-                <FormField
-                  name={"automation.startTime"}
-                  control={priceMarkupForm.control}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Input
-                          {...field}
-                          type="time"
-                          value={field.value ?? ""}
-                          onChange={(e) =>
-                            field.onChange(e.target.value)
-                          }
-                          className="bg-background appearance-none [&::-webkit-calendar-picker-indicator]:hidden [&::-webkit-calendar-picker-indicator]:appearance-none"
-                        />
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-                <FormField
-                  name={"automation.frequency"}
-                  control={priceMarkupForm.control}
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormControl>
-                        <Select
-                          value={field.value || ""}
-                          onValueChange={field.onChange}
-                        >
-                          <SelectTrigger className="w-[180px]">
-                            <SelectValue placeholder="Оберіть частоту оновлення" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectGroup>
-                              <SelectItem value="daily">
-                                Щоденно
-                              </SelectItem>
-                            </SelectGroup>
-                          </SelectContent>
-                        </Select>
-                      </FormControl>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+            {/* Automation settings */}
+            <Card variant="outlined" sx={{ mb: 2 }}>
+              <CardHeader
+                title={
+                  <Typography variant="h6" fontWeight={400}>
+                    Налаштування автоматичної націнки
+                  </Typography>
+                }
+                subheader={
+                  <Typography variant="caption">
+                    Вкажіть правила для автоматизації
+                    націнки товарів. Поле не є обов'язковим.
+                    При заповненні, націнка буде застосована
+                    згідно з вказаними правилами.
+                  </Typography>
+                }
+              />
+              <Divider />
+              <CardContent>
+                <Stack
+                  direction={{ xs: "column", sm: "row" }}
+                  spacing={2}
+                >
+                  <Controller
+                    name={"automation.startTime"}
+                    control={priceMarkupForm.control}
+                    render={({ field, fieldState }) => (
+                      <TextField
+                        {...field}
+                        value={field.value ?? ""}
+                        onChange={(e) =>
+                          field.onChange(e.target.value)
+                        }
+                        type="time"
+                        size="small"
+                        error={!!fieldState.error}
+                        helperText={
+                          fieldState.error?.message
+                        }
+                      />
+                    )}
+                  />
+                  <Controller
+                    name={"automation.frequency"}
+                    control={priceMarkupForm.control}
+                    render={({ field, fieldState }) => (
+                      <TextField
+                        select
+                        size="small"
+                        label="Частота оновлення"
+                        value={field.value || ""}
+                        onChange={field.onChange}
+                        error={!!fieldState.error}
+                        helperText={
+                          fieldState.error?.message
+                        }
+                        sx={{ minWidth: 220 }}
+                      >
+                        <MenuItem value="daily">
+                          Щоденно
+                        </MenuItem>
+                      </TextField>
+                    )}
+                  />
+                </Stack>
               </CardContent>
-              <CardFooter>
+              <CardActions sx={{ px: 2, pb: 2 }}>
                 <Button
-                  type={"button"}
-                  variant={"outline"}
+                  variant="outlined"
+                  color="inherit"
                   onClick={onResetAutomationSection}
                 >
                   Скасувати налаштування автоматизації
                 </Button>
-              </CardFooter>
+              </CardActions>
             </Card>
-            <Card className={"shadow-none"}>
-              <CardHeader>
-                <CardTitle className={"font-normal"}>
-                  Налаштування націнки
-                </CardTitle>
-                <CardDescription className={"text-xs"}>
-                  Вкажіть глобальну націнку, а також
-                  додаткові правила для категорій та окремих
-                  товарів.
-                </CardDescription>
-              </CardHeader>
+
+            {/* Price settings */}
+            <Card
+              sx={{
+                boxShadow: "none",
+              }}
+            >
+              <CardHeader
+                title={
+                  <Typography variant="h6" fontWeight={400}>
+                    Налаштування націнки
+                  </Typography>
+                }
+                subheader={
+                  <Typography variant="caption">
+                    Вкажіть глобальну націнку, а також
+                    додаткові правила для категорій та
+                    окремих товарів.
+                  </Typography>
+                }
+              />
               <CardContent>
-                <Tabs defaultValue={"global"}>
-                  <TabsList>
-                    <TabsTrigger value="global">
-                      Глобальні
-                    </TabsTrigger>
-                    <TabsTrigger value="categories">
-                      За категоріями
-                    </TabsTrigger>
-                    <TabsTrigger value="offers">
-                      За товарами
-                    </TabsTrigger>
-                  </TabsList>
-                  <TabsContent value={"global"}>
-                    <FormField
-                      control={priceMarkupForm.control}
+                <Tabs
+                  value={settingsTab}
+                  onChange={(
+                    _e: React.SyntheticEvent,
+                    v: "global" | "categories" | "offers",
+                  ) => setSettingsTab(v)}
+                  aria-label="price settings tabs"
+                >
+                  <Tab value="global" label="Глобальні" />
+                  <Tab
+                    value="categories"
+                    label="За категоріями"
+                  />
+                  <Tab value="offers" label="За товарами" />
+                </Tabs>
+
+                {/* Global tab */}
+                {settingsTab === "global" && (
+                  <Box sx={{ pt: 2 }}>
+                    <Controller
                       name={"global.markupPercentage"}
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel
-                            className={"font-normal"}
-                          >
-                            Глобальна націнка
-                          </FormLabel>
-                          <FormDescription
-                            className={"text-xs"}
-                          >
-                            Націнка для всіх товарів у
-                            каталозі, може бути перезаписана
-                            націнкою за категоріями або
-                            товарами.
-                          </FormDescription>
-                          <InputGroup>
-                            <FormControl>
-                              <InputGroupInput
-                                {...field}
-                                type={"number"}
-                                value={field.value ?? ""}
-                                onChange={(e) =>
-                                  field.onChange(
-                                    e.target.valueAsNumber,
-                                  )
-                                }
-                                placeholder={"1000"}
-                              />
-                            </FormControl>
-                            <InputGroupAddon align="inline-end">
-                              <Percent />
-                            </InputGroupAddon>
-                          </InputGroup>
-                          <FormMessage />
-                        </FormItem>
+                      control={priceMarkupForm.control}
+                      render={({ field, fieldState }) => (
+                        <TextField
+                          {...field}
+                          value={field.value ?? ""}
+                          onChange={(e) => {
+                            const num =
+                              e.target.value === ""
+                                ? undefined
+                                : e.target.valueAsNumber
+                            field.onChange(num as any)
+                          }}
+                          label="Глобальна націнка"
+                          size="small"
+                          fullWidth
+                          type="number"
+                          placeholder="1000"
+                          error={!!fieldState.error}
+                          helperText={
+                            fieldState.error?.message ||
+                            "Націнка для всіх товарів у каталозі, може бути перезаписана націнкою за категоріями або товарами."
+                          }
+                          InputProps={{
+                            endAdornment: (
+                              <InputAdornment position="end">
+                                %
+                              </InputAdornment>
+                            ),
+                          }}
+                        />
                       )}
                     />
-                  </TabsContent>
-                  <TabsContent
-                    value={"categories"}
-                    className={"flex flex-col gap-2"}
-                  >
-                    <Field>
-                      <FieldLabel className={"font-normal"}>
+                  </Box>
+                )}
+
+                {/* Categories tab */}
+                {settingsTab === "categories" && (
+                  <Box sx={{ pt: 2 }}>
+                    <Stack spacing={1} sx={{ mb: 1 }}>
+                      <Typography
+                        variant="subtitle1"
+                        fontWeight={400}
+                      >
                         Націнка за категоріями
-                      </FieldLabel>
-                      <FieldDescription
-                        className={"text-xs"}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
                       >
                         Націнка для товарів у вказаних
                         категоріях, перезаписує глобальну
                         націнку та може бути перезаписана
                         націнкою за товарами.
-                      </FieldDescription>
+                      </Typography>
                       <CreatePriceMarkupItemDialogForm
                         triggerText={"+ Додати категорію"}
                         titleText={"Додати категорію"}
@@ -648,172 +665,176 @@ const CreatePriceMarkupForm: FC = () => {
                             name: value.name,
                             isApplied: value.isApplied,
                             markupPercentage: 0,
+                            numberOfOffers: (value as any)
+                              .numberOfOffers,
                           })
                         }
                         onSearch={onSearchCategories}
                         renderItem={(
                           category: CatalogCategory,
                         ) => (
-                          <Item>
-                            <ItemContent>
-                              <ItemTitle>
-                                {category.id} -{" "}
-                                {category.name}
-                              </ItemTitle>
-                            </ItemContent>
-                          </Item>
+                          <Box sx={{ p: 1 }}>
+                            <Typography variant="body2">
+                              {category.id} -{" "}
+                              {category.name}
+                            </Typography>
+                          </Box>
                         )}
                         renderSelectedItem={(
                           category: CatalogCategory,
-                        ) => <>{category.name}</>}
+                        ) => (
+                          <Typography variant="body2">
+                            {category.name}
+                          </Typography>
+                        )}
                       />
-                    </Field>
-                    <Table>
-                      <TableCaption>
-                        Налаштування націнки за категоріями
-                        товарів
-                      </TableCaption>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>
-                            Код категорії
-                          </TableHead>
-                          <TableHead>Назва</TableHead>
-                          <TableHead className="text-right">
-                            Націнка
-                          </TableHead>
-                          <TableHead
-                            className={"text-center"}
-                          >
-                            Дії
-                          </TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {categoryFields.map(
-                          (categoryField: any, index) => (
-                            <TableRow key={index}>
-                              <TableCell>
-                                {categoryField.categoryId}
-                              </TableCell>
-                              <TableCell>
-                                <h3
-                                  className={"font-normal"}
-                                >
-                                  {categoryField.name}
-                                </h3>
-                                <p
-                                  className={
-                                    "text-muted-foreground text-xs"
-                                  }
-                                >
-                                  Містить{" "}
-                                  {
-                                    categoryField.numberOfOffers
-                                  }{" "}
-                                  шт. товарів
-                                </p>
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex justify-end items-center">
+                    </Stack>
+
+                    {categoryFields.length !== 0 && (
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>
+                              Код категорії
+                            </TableCell>
+                            <TableCell>Назва</TableCell>
+                            <TableCell align="right">
+                              Націнка
+                            </TableCell>
+                            <TableCell align="center">
+                              Дії
+                            </TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {categoryFields.map(
+                            (categoryField: any, index) => (
+                              <TableRow key={index}>
+                                <TableCell>
+                                  {categoryField.categoryId}
+                                </TableCell>
+                                <TableCell>
+                                  <Typography
+                                    variant="body2"
+                                    fontWeight={400}
+                                  >
+                                    {categoryField.name}
+                                  </Typography>
+                                  <Typography
+                                    variant="caption"
+                                    color="text.secondary"
+                                  >
+                                    Містить{" "}
+                                    {categoryField.numberOfOffers ??
+                                      0}{" "}
+                                    шт. товарів
+                                  </Typography>
+                                </TableCell>
+                                <TableCell align="right">
                                   {categoryField.isApplied ? (
-                                    <FormField
+                                    <Controller
                                       key={categoryField.id}
+                                      name={
+                                        `categories.${index}.markupPercentage` as const
+                                      }
                                       control={
                                         priceMarkupForm.control
                                       }
-                                      name={`categories.${index}.markupPercentage`}
                                       render={({
                                         field,
+                                        fieldState,
                                       }) => (
-                                        <FormItem>
-                                          <InputGroup>
-                                            <FormControl>
-                                              <InputGroupInput
-                                                {...field}
-                                                type={
-                                                  "number"
-                                                }
-                                                value={
-                                                  field.value ??
-                                                  ""
-                                                }
-                                                onChange={(
-                                                  e,
-                                                ) =>
-                                                  field.onChange(
-                                                    e.target
-                                                      .valueAsNumber ||
-                                                      0,
-                                                  )
-                                                }
-                                                placeholder={
-                                                  "Введіть процент націнки..."
-                                                }
-                                              />
-                                            </FormControl>
-                                            <InputGroupAddon
-                                              align={
-                                                "inline-end"
-                                              }
-                                            >
-                                              <Percent />
-                                            </InputGroupAddon>
-                                          </InputGroup>
-                                        </FormItem>
+                                        <TextField
+                                          {...field}
+                                          value={
+                                            field.value ??
+                                            ""
+                                          }
+                                          onChange={(e) => {
+                                            const num =
+                                              e.target
+                                                .value ===
+                                              ""
+                                                ? undefined
+                                                : e.target
+                                                    .valueAsNumber
+                                            field.onChange(
+                                              (num ??
+                                                0) as any,
+                                            )
+                                          }}
+                                          size="small"
+                                          type="number"
+                                          placeholder="Введіть процент націнки..."
+                                          error={
+                                            !!fieldState.error
+                                          }
+                                          helperText={
+                                            fieldState.error
+                                              ?.message
+                                          }
+                                          InputProps={{
+                                            endAdornment: (
+                                              <InputAdornment position="end">
+                                                %
+                                              </InputAdornment>
+                                            ),
+                                          }}
+                                          sx={{
+                                            maxWidth: 220,
+                                          }}
+                                        />
                                       )}
                                     />
                                   ) : (
-                                    <span
-                                      className={
-                                        "text-muted-foreground"
-                                      }
+                                    <Typography
+                                      variant="caption"
+                                      color="text.secondary"
                                     >
                                       Виключено з націнки
-                                    </span>
+                                    </Typography>
                                   )}
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <div
-                                  className={
-                                    "flex justify-center items-center"
-                                  }
-                                >
-                                  <Button
-                                    type={"button"}
-                                    variant={"ghost"}
+                                </TableCell>
+                                <TableCell align="center">
+                                  <IconButton
+                                    aria-label="delete"
                                     onClick={() =>
                                       removeCategoryField(
                                         index,
                                       )
                                     }
+                                    size="small"
                                   >
-                                    <Delete />
-                                  </Button>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          ),
-                        )}
-                      </TableBody>
-                    </Table>
-                  </TabsContent>
-                  <TabsContent
-                    value={"offers"}
-                    className={"flex flex-col gap-2"}
-                  >
-                    <Field>
-                      <FieldLabel className={"font-normal"}>
+                                    <DeleteIcon />
+                                  </IconButton>
+                                </TableCell>
+                              </TableRow>
+                            ),
+                          )}
+                        </TableBody>
+                      </Table>
+                    )}
+                  </Box>
+                )}
+
+                {/* Offers tab */}
+                {settingsTab === "offers" && (
+                  <Box sx={{ pt: 2 }}>
+                    <Stack spacing={1} sx={{ mb: 1 }}>
+                      <Typography
+                        variant="subtitle1"
+                        fontWeight={400}
+                      >
                         Націнка за товарами
-                      </FieldLabel>
-                      <FieldDescription
-                        className={"text-xs"}
+                      </Typography>
+                      <Typography
+                        variant="caption"
+                        color="text.secondary"
                       >
                         Націнка для товарів, перезаписує
                         глобальну націнку та націнку за
                         категоріями.
-                      </FieldDescription>
+                      </Typography>
                       <CreatePriceMarkupItemDialogForm
                         triggerText={"+ Додати товар"}
                         titleText={"Додати товар"}
@@ -837,298 +858,348 @@ const CreatePriceMarkupForm: FC = () => {
                         renderItem={(
                           offer: CatalogOffer,
                         ) => (
-                          <Item>
-                            <ItemContent>
-                              <ItemTitle>
-                                {offer.id} - {offer.name}
-                              </ItemTitle>
-                              <ItemDescription>
-                                В наявності{" "}
-                                {offer.quantityInStock} шт.
-                                за {offer.price} грн.
-                              </ItemDescription>
-                            </ItemContent>
-                          </Item>
+                          <Box sx={{ p: 1 }}>
+                            <Typography variant="body2">
+                              {offer.id} - {offer.name}
+                            </Typography>
+                            <Typography
+                              variant="caption"
+                              color="text.secondary"
+                            >
+                              В наявності{" "}
+                              {offer.quantityInStock} шт. за{" "}
+                              {offer.price} грн.
+                            </Typography>
+                          </Box>
                         )}
                         renderSelectedItem={(
-                          offer: CatalogCategory,
-                        ) => <>{offer.name}</>}
+                          offer: CatalogOffer,
+                        ) => (
+                          <Typography variant="body2">
+                            {offer.name}
+                          </Typography>
+                        )}
                       />
-                    </Field>
-                    <Table>
-                      <TableCaption>
-                        Налаштування націнки за товарами
-                      </TableCaption>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Код товару</TableHead>
-                          <TableHead>Назва</TableHead>
-                          <TableHead className="text-right">
-                            Націнка
-                          </TableHead>
-                          <TableHead
-                            className={"text-center"}
-                          >
-                            Дії
-                          </TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {offerFields.map(
-                          (offerField: any, index) => (
-                            <TableRow key={index}>
-                              <TableCell>
-                                {offerField.offerId}
-                              </TableCell>
-                              <TableCell>
-                                <h3
-                                  className={"font-normal"}
-                                >
-                                  {offerField.name}
-                                </h3>
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex justify-end items-center">
+                    </Stack>
+
+                    {offerFields.length !== 0 && (
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow>
+                            <TableCell>
+                              Код товару
+                            </TableCell>
+                            <TableCell>Назва</TableCell>
+                            <TableCell align="right">
+                              Націнка
+                            </TableCell>
+                            <TableCell align="center">
+                              Дії
+                            </TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {offerFields.map(
+                            (offerField: any, index) => (
+                              <TableRow key={index}>
+                                <TableCell>
+                                  {offerField.offerId}
+                                </TableCell>
+                                <TableCell>
+                                  <Typography
+                                    variant="body2"
+                                    fontWeight={400}
+                                  >
+                                    {offerField.name}
+                                  </Typography>
+                                </TableCell>
+                                <TableCell align="right">
                                   {offerField.isApplied ? (
-                                    <FormField
+                                    <Controller
                                       key={offerField.id}
+                                      name={
+                                        `offers.${index}.newPrice` as const
+                                      }
                                       control={
                                         priceMarkupForm.control
                                       }
-                                      name={`offers.${index}.newPrice`}
                                       render={({
                                         field,
+                                        fieldState,
                                       }) => (
-                                        <FormItem>
-                                          <ButtonGroup>
-                                            <ButtonGroupText
-                                              className={
-                                                "font-normal text-sm"
-                                              }
-                                            >
-                                              <span
-                                                className={
-                                                  "line-through "
-                                                }
-                                              >
-                                                {
-                                                  offerField.oldPrice
-                                                }{" "}
-                                              </span>
-                                              ₴
-                                            </ButtonGroupText>
-                                            <InputGroup>
-                                              <FormControl>
-                                                <InputGroupInput
-                                                  {...field}
-                                                  type={
-                                                    "number"
-                                                  }
-                                                  value={
-                                                    field.value ??
-                                                    ""
-                                                  }
-                                                  onChange={(
-                                                    e,
-                                                  ) =>
-                                                    field.onChange(
-                                                      e
-                                                        .target
-                                                        .valueAsNumber ||
-                                                        0,
-                                                    )
-                                                  }
-                                                  placeholder={
-                                                    "Введіть нову ціну..."
-                                                  }
-                                                />
-                                              </FormControl>
-                                              <InputGroupAddon
-                                                align={
-                                                  "inline-end"
-                                                }
-                                              >
-                                                ₴
-                                              </InputGroupAddon>
-                                            </InputGroup>
-                                          </ButtonGroup>
-                                        </FormItem>
+                                        <Stack
+                                          direction="row"
+                                          alignItems="center"
+                                          justifyContent="flex-end"
+                                          spacing={1}
+                                        >
+                                          <Typography
+                                            variant="body2"
+                                            sx={{
+                                              textDecoration:
+                                                "line-through",
+                                            }}
+                                          >
+                                            {
+                                              offerField.oldPrice
+                                            }{" "}
+                                            ₴
+                                          </Typography>
+                                          <TextField
+                                            {...field}
+                                            value={
+                                              field.value ??
+                                              ""
+                                            }
+                                            onChange={(
+                                              e,
+                                            ) => {
+                                              const num =
+                                                e.target
+                                                  .value ===
+                                                ""
+                                                  ? undefined
+                                                  : e.target
+                                                      .valueAsNumber
+                                              field.onChange(
+                                                (num ??
+                                                  0) as any,
+                                              )
+                                            }}
+                                            size="small"
+                                            type="number"
+                                            placeholder="Введіть нову ціну..."
+                                            error={
+                                              !!fieldState.error
+                                            }
+                                            helperText={
+                                              fieldState
+                                                .error
+                                                ?.message
+                                            }
+                                            InputProps={{
+                                              endAdornment:
+                                                (
+                                                  <InputAdornment position="end">
+                                                    ₴
+                                                  </InputAdornment>
+                                                ),
+                                            }}
+                                            sx={{
+                                              maxWidth: 220,
+                                            }}
+                                          />
+                                        </Stack>
                                       )}
                                     />
                                   ) : (
-                                    <span
-                                      className={
-                                        "text-muted-foreground"
-                                      }
+                                    <Typography
+                                      variant="caption"
+                                      color="text.secondary"
                                     >
                                       Виключено з націнки
-                                    </span>
+                                    </Typography>
                                   )}
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <div
-                                  className={
-                                    "flex justify-center items-center"
-                                  }
-                                >
-                                  <Button
-                                    type={"button"}
-                                    variant={"ghost"}
+                                </TableCell>
+                                <TableCell align="center">
+                                  <IconButton
+                                    aria-label="delete"
                                     onClick={() =>
                                       removeOfferField(
                                         index,
                                       )
                                     }
+                                    size="small"
                                   >
-                                    <Delete />
-                                  </Button>
-                                </div>
-                              </TableCell>
-                            </TableRow>
-                          ),
-                        )}
-                      </TableBody>
-                    </Table>
-                  </TabsContent>
-                </Tabs>
+                                    <DeleteIcon />
+                                  </IconButton>
+                                </TableCell>
+                              </TableRow>
+                            ),
+                          )}
+                        </TableBody>
+                      </Table>
+                    )}
+                  </Box>
+                )}
               </CardContent>
-              {(priceMarkupForm.formState.errors._form ||
-                priceMarkupForm.formState.errors.global ||
-                priceMarkupForm.formState.errors
-                  .categories ||
-                priceMarkupForm.formState.errors
-                  .offers) && (
-                <CardContent
-                  className={"flex flex-col gap-2"}
-                >
-                  {priceMarkupForm.formState.errors
-                    ._form && (
-                    <CardDescription
-                      className={"text-[#c95d63]"}
-                    >
-                      {
-                        priceMarkupForm.formState.errors
-                          ._form?.message
-                      }
-                    </CardDescription>
-                  )}
-                  {priceMarkupForm.formState.errors
-                    .categories && (
-                    <CardDescription
-                      className={"text-[#c95d63]"}
-                    >
-                      {
-                        priceMarkupForm.formState.errors
-                          .categories.categoryId?.message
-                      }
-                    </CardDescription>
-                  )}
-                  {priceMarkupForm.formState.errors
-                    .offers && (
-                    <CardDescription
-                      className={"text-[#c95d63]"}
-                    >
-                      {
-                        priceMarkupForm.formState.errors
-                          .offers.offerId?.message
-                      }
-                    </CardDescription>
-                  )}
-                </CardContent>
+
+              {/* Validation alerts */}
+              {hasValidationErrors && (
+                <>
+                  <Divider />
+                  <CardContent>
+                    <Stack spacing={1}>
+                      {(
+                        priceMarkupForm.formState
+                          .errors as any
+                      )?._form?.message && (
+                        <Alert
+                          severity="error"
+                          variant="outlined"
+                        >
+                          {
+                            (
+                              priceMarkupForm.formState
+                                .errors as any
+                            )?._form?.message
+                          }
+                        </Alert>
+                      )}
+                      {(
+                        priceMarkupForm.formState
+                          .errors as any
+                      )?.categories?.categoryId
+                        ?.message && (
+                        <Alert
+                          severity="error"
+                          variant="outlined"
+                        >
+                          {
+                            (
+                              priceMarkupForm.formState
+                                .errors as any
+                            )?.categories?.categoryId
+                              ?.message
+                          }
+                        </Alert>
+                      )}
+                      {(
+                        priceMarkupForm.formState
+                          .errors as any
+                      )?.offers?.offerId?.message && (
+                        <Alert
+                          severity="error"
+                          variant="outlined"
+                        >
+                          {
+                            (
+                              priceMarkupForm.formState
+                                .errors as any
+                            )?.offers?.offerId?.message
+                          }
+                        </Alert>
+                      )}
+                    </Stack>
+                  </CardContent>
+                </>
               )}
-              <Separator className={"my-2 mb-8"} />
-              <CardFooter>
-                <Button type={"submit"}>
+
+              <Divider />
+              <CardActions sx={{ px: 2, pb: 2 }}>
+                <Button type="submit" variant="contained">
                   Застосувати націнку
                 </Button>
-              </CardFooter>
+              </CardActions>
             </Card>
           </>
         )}
 
+        {/* Step 3: Processing */}
         {step === 3 && (
-          <Card>
-            <CardHeader
-              className={"flex items-center gap-2 flex-col"}
-            >
-              <CardTitle
-                className={"flex items-center gap-2"}
+          <Card variant="outlined">
+            <CardContent>
+              <Stack
+                spacing={1}
+                alignItems="center"
+                textAlign="center"
+                sx={{ py: 2 }}
               >
-                <Spinner />
-                <h3 className={"font-normal"}>
+                <CircularProgress size={20} />
+                <Typography
+                  variant="body1"
+                  fontWeight={400}
+                >
                   Оновлення даних на Prom.ua...
-                </h3>
-              </CardTitle>
-              <CardDescription
-                className={"text-xs text-muted-foreground"}
-              >
-                Процесс оновлення даних, це може зайняти
-                декілька хвилин будь ласка зачекайте.
-              </CardDescription>
-            </CardHeader>
+                </Typography>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                >
+                  Процесс оновлення даних, це може зайняти
+                  декілька хвилин будь ласка зачекайте.
+                </Typography>
+              </Stack>
+            </CardContent>
           </Card>
         )}
 
+        {/* Step 4: Success */}
         {step === 4 && (
-          <Card>
-            <CardHeader
-              className={"flex items-center gap-2 flex-col"}
-            >
-              <CardTitle
-                className={"flex items-center gap-2"}
+          <Card variant="outlined">
+            <CardContent>
+              <Stack
+                spacing={1}
+                alignItems="center"
+                textAlign="center"
+                sx={{ py: 2 }}
               >
-                <h3 className={"font-normal"}>
+                <Typography
+                  variant="body1"
+                  fontWeight={400}
+                >
                   Дані оновлені успішно
-                </h3>
-              </CardTitle>
-              <CardDescription
-                className={"text-xs text-muted-foreground"}
-              >
-                Натисніть кнопку нижче, щоб повернутися до
-                початку та створити нове оновлення.
-              </CardDescription>
-            </CardHeader>
-            <Separator className={"my-2 mb-8"} />
-            <CardFooter>
-              <Button type={"reset"} onClick={onResetForm}>
-                Завершити
-              </Button>
-            </CardFooter>
+                </Typography>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                >
+                  Натисніть кнопку нижче, щоб повернутися до
+                  початку та створити нове оновлення.
+                </Typography>
+                <Button
+                  type="reset"
+                  variant="contained"
+                  onClick={onResetForm}
+                  sx={{ mt: 1 }}
+                >
+                  Завершити
+                </Button>
+              </Stack>
+            </CardContent>
           </Card>
         )}
 
+        {/* Step 5: Error */}
         {step === 5 && (
-          <Card>
-            <CardHeader
-              className={"flex items-center gap-2 flex-col"}
-            >
-              <CardTitle
-                className={"flex items-center gap-2"}
+          <Card variant="outlined">
+            <CardContent>
+              <Stack
+                spacing={1}
+                alignItems="center"
+                textAlign="center"
+                sx={{ py: 2 }}
               >
-                <h3 className={"font-normal"}>
+                <Typography
+                  variant="body1"
+                  fontWeight={400}
+                >
                   Сталася невідома помилка при оновленні
                   даних
-                </h3>
-              </CardTitle>
-              <CardDescription
-                className={"text-xs text-muted-foreground"}
-              >
-                Натисніть кнопку нижче, щоб повернутися до
-                початку та створити нове оновлення.
-              </CardDescription>
-            </CardHeader>
-            <Separator className={"my-2 mb-8"} />
-            <CardFooter>
-              <Button type={"reset"} onClick={onResetForm}>
-                Завершити
-              </Button>
-            </CardFooter>
+                </Typography>
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                >
+                  Натисніть кнопку нижче, щоб повернутися до
+                  початку та створити нове оновлення.
+                </Typography>
+                <Button
+                  type="reset"
+                  variant="contained"
+                  onClick={onResetForm}
+                  sx={{ mt: 1 }}
+                >
+                  Завершити
+                </Button>
+              </Stack>
+            </CardContent>
           </Card>
         )}
       </form>
-    </Form>
+    </FormProvider>
   )
 }
 
 export { CreatePriceMarkupForm }
+export default CreatePriceMarkupForm

@@ -4,24 +4,15 @@ import {
   getAutomations,
   removeAutomation,
 } from "@/pages/automations-page/AutomationsPage.funcs"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import Card from "@mui/material/Card"
+import CardContent from "@mui/material/CardContent"
+import CardHeader from "@mui/material/CardHeader"
+import Divider from "@mui/material/Divider"
+import Typography from "@mui/material/Typography"
+import Box from "@mui/material/Box"
+import CircularProgress from "@mui/material/CircularProgress"
 import { AutomationItem } from "@/pages/automations-page/AutomationItem"
-import { Spinner } from "@/components/ui/spinner"
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyTitle,
-} from "@/components/ui/empty"
 import { Link } from "react-router-dom"
-import { Separator } from "@/components/ui/separator"
 
 const AutomationsPage: FC = () => {
   const [automations, setAutomations] = useState<
@@ -50,32 +41,44 @@ const AutomationsPage: FC = () => {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className={"font-normal"}>
-          Автоматизації
-        </CardTitle>
-        <CardDescription>
-          Список автоматизацій оновлення цін.
-        </CardDescription>
-      </CardHeader>
-      <Separator />
+    <Card variant="outlined">
+      <CardHeader
+        title={
+          <Typography variant="h6" fontWeight={400}>
+            Автоматизації
+          </Typography>
+        }
+        subheader={
+          <Typography variant="caption">
+            Список автоматизацій оновлення цін.
+          </Typography>
+        }
+      />
       <CardContent className={"pt-6 flex flex-col gap-2"}>
         {isLoading ? (
-          <div
-            className={
-              "flex flex-col gap-2 items-center justify-center py-10"
-            }
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 1,
+              alignItems: "center",
+              justifyContent: "center",
+              py: 3,
+            }}
           >
-            <Spinner />
-            <h3 className={"font-normal text-sm"}>
+            <CircularProgress size={20} />
+            <Typography variant="body2" fontWeight={400}>
               Завантаження...
-            </h3>
-            <p className={"text-xs text-muted-foreground"}>
+            </Typography>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              align="center"
+            >
               Будь ласка, зачекайте, це може зайняти кілька
               секунд.
-            </p>
-          </div>
+            </Typography>
+          </Box>
         ) : automations.length > 0 ? (
           automations.map((automation, index) => (
             <AutomationItem
@@ -91,27 +94,25 @@ const AutomationsPage: FC = () => {
             />
           ))
         ) : (
-          <Empty>
-            <EmptyHeader>
-              <EmptyTitle
-                className={"font-normal text-base"}
-              >
-                Автоматизацій не знайдено
-              </EmptyTitle>
-              <EmptyDescription className={"text-xs"}>
-                На даний момент у вас немає жодної
-                автоматизації для оновлення цін.
-              </EmptyDescription>
-            </EmptyHeader>
-            <EmptyContent>
-              <Link
-                to={"/create-price-markup"}
-                className={"underline"}
-              >
-                Додати автоматизацію
-              </Link>
-            </EmptyContent>
-          </Empty>
+          <Box sx={{ textAlign: "center", py: 3 }}>
+            <Typography variant="body1" fontWeight={400}>
+              Автоматизацій не знайдено
+            </Typography>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ display: "block", mb: 1 }}
+            >
+              На даний момент у вас немає жодної
+              автоматизації для оновлення цін.
+            </Typography>
+            <Link
+              to={"/create-price-markup"}
+              style={{ textDecoration: "underline" }}
+            >
+              Додати автоматизацію
+            </Link>
+          </Box>
         )}
       </CardContent>
     </Card>

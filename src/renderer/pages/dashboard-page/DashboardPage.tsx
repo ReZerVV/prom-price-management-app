@@ -1,30 +1,18 @@
-import { FC, useEffect, useState } from "react"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import React, { FC, useEffect, useState } from "react"
+import Card from "@mui/material/Card"
+import CardContent from "@mui/material/CardContent"
+import CardHeader from "@mui/material/CardHeader"
+import Divider from "@mui/material/Divider"
+import Typography from "@mui/material/Typography"
+import Box from "@mui/material/Box"
+import CircularProgress from "@mui/material/CircularProgress"
+import { Link } from "react-router-dom"
 import {
   ChangesGroup,
   PriceMarkupChangesLog,
 } from "../../../types"
 import { getLogs } from "@/pages/dashboard-page/DashboardPage.funcs"
-import { Spinner } from "@/components/ui/spinner"
-import { AutomationItem } from "@/pages/automations-page/AutomationItem"
-import {
-  Empty,
-  EmptyContent,
-  EmptyDescription,
-  EmptyHeader,
-  EmptyMedia,
-  EmptyTitle,
-} from "@/components/ui/empty"
-import { Zap } from "lucide-react"
-import { Link } from "react-router-dom"
 import { ChangeLogItem } from "@/pages/dashboard-page/ChangeLogItem"
-import { Separator } from "@/components/ui/separator"
 
 const DashboardPage: FC = () => {
   const [logs, setLogs] = useState<
@@ -46,74 +34,87 @@ const DashboardPage: FC = () => {
   }, [])
 
   return (
-    <div>
-      <Card>
-        <CardHeader>
-          <CardTitle className={"font-normal"}>
+    <Card variant="outlined">
+      <CardHeader
+        title={
+          <Typography variant="h6" fontWeight={400}>
             Історія
-          </CardTitle>
-          <CardDescription className={"text-xs"}>
+          </Typography>
+        }
+        subheader={
+          <Typography variant="caption">
             Історія ваших дій буде відображатися тут.
-          </CardDescription>
-        </CardHeader>
-        <Separator />
-        <CardContent className={"flex flex-col gap-2 pt-6"}>
-          {isLoading ? (
-            <div
-              className={
-                "flex flex-col gap-2 items-center justify-center py-10"
-              }
+          </Typography>
+        }
+      />
+      <Divider />
+      <CardContent
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 1,
+        }}
+      >
+        {isLoading ? (
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 1,
+              alignItems: "center",
+              justifyContent: "center",
+              py: 3,
+            }}
+          >
+            <CircularProgress size={20} />
+            <Typography variant="body2" fontWeight={400}>
+              Завантаження...
+            </Typography>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              align="center"
             >
-              <Spinner />
-              <h3 className={"font-normal text-sm"}>
-                Завантаження...
-              </h3>
-              <p
-                className={"text-xs text-muted-foreground"}
-              >
-                Будь ласка, зачекайте, це може зайняти
-                кілька секунд.
-              </p>
-            </div>
-          ) : logs.length > 0 ? (
-            logs.map((log, index) => (
-              <ChangeLogItem
-                key={index}
-                catalogUrls={log.changesGroup.catalogUrls}
-                createdAt={log.createdAt}
-                numberOfSuccessfullyChangedOffers={
-                  log.numberOfSuccessfullyChangedOffers
-                }
-                status={log.status}
-                type={log.type}
-              />
-            ))
-          ) : (
-            <Empty>
-              <EmptyHeader>
-                <EmptyTitle
-                  className={"font-normal text-base"}
-                >
-                  Логів не знайдено
-                </EmptyTitle>
-                <EmptyDescription className={"text-xs"}>
-                  На даний момент не було виконано жодної
-                  операції.
-                </EmptyDescription>
-              </EmptyHeader>
-              <EmptyContent>
-                <Link
-                  to={"/create-price-markup"}
-                  className={"underline"}
-                >
-                  Додати операцію
-                </Link>
-              </EmptyContent>
-            </Empty>
-          )}
-        </CardContent>
-      </Card>
-    </div>
+              Будь ласка, зачекайте, це може зайняти кілька
+              секунд.
+            </Typography>
+          </Box>
+        ) : logs.length > 0 ? (
+          logs.map((log, index) => (
+            <ChangeLogItem
+              key={index}
+              catalogUrls={log.changesGroup.catalogUrls}
+              createdAt={log.createdAt}
+              numberOfSuccessfullyChangedOffers={
+                log.numberOfSuccessfullyChangedOffers
+              }
+              status={log.status}
+              type={log.type}
+            />
+          ))
+        ) : (
+          <Box sx={{ textAlign: "center", py: 3 }}>
+            <Typography variant="body1" fontWeight={400}>
+              Логів не знайдено
+            </Typography>
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ display: "block", mb: 1 }}
+            >
+              На даний момент не було виконано жодної
+              операції.
+            </Typography>
+            <Link
+              to={"/create-price-markup"}
+              style={{ textDecoration: "underline" }}
+            >
+              Додати операцію
+            </Link>
+          </Box>
+        )}
+      </CardContent>
+    </Card>
   )
 }
 
